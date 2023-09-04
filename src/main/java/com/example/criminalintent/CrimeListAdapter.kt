@@ -1,5 +1,6 @@
 package com.example.criminalintent
 
+import android.icu.text.DateFormat
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -10,9 +11,11 @@ import com.google.android.material.snackbar.Snackbar
 class CrimeHolder(
     val binding: ListItemCrimeBinding
 ): RecyclerView.ViewHolder(binding.root) {
+
+    private val dateFormat = "EEEE, MMMM, d, yyyy h:mm a"
     fun bind(crime: Crime) {
         binding.crimeTitle.text = crime.title
-        binding.crimeDate.text = crime.date.toString()
+        binding.crimeDate.text = DateFormat.getPatternInstance(dateFormat).format(crime.date).replace(" at","")
 
         binding.root.setOnClickListener {
             Snackbar.make(it, "${crime.title} clicked!", Snackbar.LENGTH_SHORT).show()
