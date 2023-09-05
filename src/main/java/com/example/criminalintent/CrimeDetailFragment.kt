@@ -6,9 +6,8 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.core.widget.doOnTextChanged
 import androidx.fragment.app.Fragment
+import androidx.navigation.fragment.navArgs
 import com.example.criminalintent.databinding.FragmentCrimeDetailBinding
-import java.util.Date
-import java.util.UUID
 
 class CrimeDetailFragment : Fragment() {
 
@@ -18,18 +17,8 @@ class CrimeDetailFragment : Fragment() {
             "Cannot access binding because it is null. Is the view visible?"
         }
 
-    private lateinit var crime: Crime
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-
-        crime = Crime(
-            id = UUID.randomUUID(),
-            title = "",
-            date = Date(),
-            isSolved = false,
-        )
-    }
+    private val args: CrimeDetailFragmentArgs by navArgs()
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -45,16 +34,13 @@ class CrimeDetailFragment : Fragment() {
 
         binding.apply {
             crimeTitle.doOnTextChanged {text, _, _, _ ->
-                crime = crime.copy(title = text.toString())
             }
 
             crimeDate.apply {
-                text = crime.date.toString()
                 isEnabled = false
             }
 
             crimeSolved.setOnCheckedChangeListener { _, isChecked ->
-                crime = crime.copy(isSolved = isChecked)
             }
         }
     }

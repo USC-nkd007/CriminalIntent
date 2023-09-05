@@ -6,19 +6,19 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.example.criminalintent.databinding.ListItemCrimeBinding
-import com.google.android.material.snackbar.Snackbar
+import java.util.UUID
 
 class CrimeHolder(
     val binding: ListItemCrimeBinding
 ): RecyclerView.ViewHolder(binding.root) {
 
     private val dateFormat = "EEEE, MMMM, d, yyyy"
-    fun bind(crime: Crime) {
+    fun bind(crime: Crime, onCrimeClicked: (crimeId: UUID) -> Unit) {
         binding.crimeTitle.text = crime.title
         binding.crimeDate.text = DateFormat.getPatternInstance(dateFormat).format(crime.date)
 
         binding.root.setOnClickListener {
-            Snackbar.make(it, "${crime.title} clicked!", Snackbar.LENGTH_SHORT).show()
+            onCrimeClicked(crime.id)
         }
 
         binding.crimeSolved.visibility = if (crime.isSolved) {
@@ -28,7 +28,8 @@ class CrimeHolder(
         }
     }
 }
-class CrimeListAdapter(private val crimes: List<Crime>): RecyclerView.Adapter<CrimeHolder>() {
+class CrimeListAdapter(private val crimes: List<Crime>, private val onCrimeClicked: (crimeId: UUID) -> Unit) :
+    RecyclerView.Adapter<CrimeHolder>() {
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): CrimeHolder {
         val inflater = LayoutInflater.from(parent.context)
         val binding = ListItemCrimeBinding.inflate(inflater, parent, false)
@@ -39,7 +40,6 @@ class CrimeListAdapter(private val crimes: List<Crime>): RecyclerView.Adapter<Cr
 
     override fun onBindViewHolder(holder: CrimeHolder, position: Int) {
         val crime = crimes[position]
-        holder.bind(crime)
+        holder.bind(crime, onCrimeClicked)
     }
-
 }
