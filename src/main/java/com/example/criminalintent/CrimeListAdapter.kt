@@ -12,10 +12,10 @@ class CrimeHolder(
     val binding: ListItemCrimeBinding
 ): RecyclerView.ViewHolder(binding.root) {
 
-    private val dateFormat = "EEEE, MMMM, d, yyyy h:mm a"
+    private val dateFormat = "EEEE, MMMM, d, yyyy"
     fun bind(crime: Crime) {
         binding.crimeTitle.text = crime.title
-        binding.crimeDate.text = DateFormat.getPatternInstance(dateFormat).format(crime.date).replace(" at","")
+        binding.crimeDate.text = DateFormat.getPatternInstance(dateFormat).format(crime.date)
 
         binding.root.setOnClickListener {
             Snackbar.make(it, "${crime.title} clicked!", Snackbar.LENGTH_SHORT).show()
