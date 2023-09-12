@@ -99,6 +99,9 @@ class CrimeListFragment : Fragment() {
                         binding.listNewCrime.setOnClickListener {
                             showNewCrime()
                         }
+                    } else {
+                        binding.listNewCrime.visibility = View.INVISIBLE
+                        binding.listNewCrimeHint.visibility = View.INVISIBLE
                     }
                     binding.crimeRecyclerView.adapter = CrimeListAdapter(crimes) { crimeId ->
                         findNavController().navigate(
