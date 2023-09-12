@@ -92,6 +92,14 @@ class CrimeListFragment : Fragment() {
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 crimeListViewModel.crimes.collect { crimes ->
+                    if (crimes.isEmpty()) {
+                        binding.listNewCrime.visibility = View.VISIBLE
+                        binding.listNewCrimeHint.visibility = View.VISIBLE
+
+                        binding.listNewCrime.setOnClickListener {
+                            showNewCrime()
+                        }
+                    }
                     binding.crimeRecyclerView.adapter = CrimeListAdapter(crimes) { crimeId ->
                         findNavController().navigate(
                             CrimeListFragmentDirections.showCrimeDetail(crimeId)
