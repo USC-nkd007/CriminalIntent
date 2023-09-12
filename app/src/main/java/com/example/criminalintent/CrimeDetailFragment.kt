@@ -83,8 +83,12 @@ class CrimeDetailFragment : Fragment() {
 
     private fun updateUi(crime: Crime) {
         binding.apply {
+            crimeDelete.isEnabled = crime.isSolved
             crimeDelete.setOnClickListener {
                 crimeDetailViewModel.deleteCrime(crime)
+                findNavController().navigateUp()
+            }
+            crimeDone.setOnClickListener {
                 findNavController().navigateUp()
             }
             if (crimeTitle.text.toString() != crime.title) {

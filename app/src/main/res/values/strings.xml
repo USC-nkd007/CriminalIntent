@@ -7,4 +7,5 @@
     <string name="new_crime">New Crime</string>
     <string name="delete_button">Delete</string>
     <string name="new_crime_hint">Create a new crime</string>
+    <string name="done_button">Done</string>
 </resources>
