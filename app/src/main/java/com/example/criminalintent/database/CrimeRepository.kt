@@ -21,7 +21,6 @@ private constructor(context: Context, private val coroutineScope: CoroutineScope
             CrimeDatabase::class.java,
             DATABASE_NAME
         )
-        .createFromAsset(DATABASE_NAME)
         .build()
 
     fun getCrimes(): Flow<List<Crime>> = database.crimeDao().getCrimes()
@@ -32,6 +31,10 @@ private constructor(context: Context, private val coroutineScope: CoroutineScope
         coroutineScope.launch {
             database.crimeDao().updateCrime(crime)
         }
+    }
+
+    suspend fun addCrime(crime: Crime) {
+        database.crimeDao().addCrime(crime)
     }
 
     companion object {
