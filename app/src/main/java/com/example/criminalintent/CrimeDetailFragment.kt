@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.activity.addCallback
 import androidx.core.widget.doOnTextChanged
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.setFragmentResultListener
@@ -14,6 +15,7 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.example.criminalintent.databinding.FragmentCrimeDetailBinding
+import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -35,6 +37,13 @@ class CrimeDetailFragment : Fragment() {
     }
 
     private val dateFormat = SimpleDateFormat("E dd MMM yyyy", Locale.ENGLISH)
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+
+        requireActivity().onBackPressedDispatcher.addCallback(this) {
+            crimeDetailViewModel.crime.value?.let { navBack(it) }
+        }
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -80,9 +89,22 @@ class CrimeDetailFragment : Fragment() {
         }
     }
 
+    private fun navBack(crime: Crime) {
+        if (crime.title.isBlank()) {
+            Snackbar.make(binding.root, "Please provide a title", Snackbar.LENGTH_SHORT).show()
+        } else {
+            findNavController().navigateUp()
+        }
+    }
+
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
+        if (crimeDetailViewModel.crime.value?.title?.isBlank() == true) {
+            crimeDetailViewModel.crime.value?.let {crimeDetailViewModel.updateCrime {oldCrime ->
+                oldCrime.copy(title = "Crime: ${oldCrime.id}")
+            }}
+        }
     }
 
     private fun updateUi(crime: Crime) {
@@ -93,7 +115,7 @@ class CrimeDetailFragment : Fragment() {
                 findNavController().navigateUp()
             }
             crimeDone.setOnClickListener {
-                findNavController().navigateUp()
+                navBack(crime)
             }
             if (crimeTitle.text.toString() != crime.title) {
                 crimeTitle.setText(crime.title)
