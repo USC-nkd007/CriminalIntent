@@ -89,18 +89,16 @@ class CrimeListFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        binding.listNewCrime.setOnClickListener {
+            showNewCrime()
+        }
+
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 crimeListViewModel.crimes.collect { crimes ->
                     if (crimes.isEmpty()) {
-                        binding.listNewCrime.visibility = View.VISIBLE
                         binding.listNewCrimeHint.visibility = View.VISIBLE
-
-                        binding.listNewCrime.setOnClickListener {
-                            showNewCrime()
-                        }
                     } else {
-                        binding.listNewCrime.visibility = View.INVISIBLE
                         binding.listNewCrimeHint.visibility = View.INVISIBLE
                     }
                     binding.crimeRecyclerView.adapter = CrimeListAdapter(crimes) { crimeId ->
