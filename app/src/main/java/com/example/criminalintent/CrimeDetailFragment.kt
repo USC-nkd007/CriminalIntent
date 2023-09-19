@@ -1,12 +1,18 @@
 package com.example.criminalintent
 
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.content.pm.ResolveInfo
+import android.net.Uri
 import android.os.Bundle
+import android.provider.ContactsContract
 import android.text.format.DateFormat
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.activity.addCallback
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.FileProvider
 import androidx.core.widget.doOnTextChanged
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.setFragmentResultListener
@@ -19,10 +25,11 @@ import androidx.navigation.fragment.navArgs
 import com.example.criminalintent.databinding.FragmentCrimeDetailBinding
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.launch
+import java.io.File
 import java.util.Date
 
 private const val DATE_FORMAT = "E dd MMM yyyy"
-class CrimeDetailFragment : Fragment() {
+class CrimeDetailFragment : Fragment(){
 
     private var _binding : FragmentCrimeDetailBinding? = null
     private val binding
@@ -36,6 +43,21 @@ class CrimeDetailFragment : Fragment() {
     private val crimeDetailViewModel: CrimeDetailViewModel by viewModels {
         CrimeDetailViewModelFactory(args.crimeId)
     }
+
+    private val selectSuspect =
+        registerForActivityResult(ActivityResultContracts.PickContact()) { uri: Uri? ->
+            uri?.let { parseContactSelection(it) }
+        }
+
+    private val takePhoto =
+        registerForActivityResult(ActivityResultContracts.TakePicture()) { didTakePhoto: Boolean ->
+            if (didTakePhoto && photoName != null) {
+                crimeDetailViewModel.updateCrime { oldCrime ->
+                    oldCrime.copy(photoFileName = photoName)
+                }
+            }
+        }
+    private var photoName: String? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -69,6 +91,38 @@ class CrimeDetailFragment : Fragment() {
                     oldCrime.copy(isSolved = isChecked)
                 }
             }
+
+            crimeSuspect.setOnClickListener {
+                selectSuspect.launch(null)
+            }
+
+            val selectSuspectIntent = selectSuspect.contract.createIntent(
+                requireContext(),
+                null
+            )
+            crimeSuspect.isEnabled = canResolveIntent(selectSuspectIntent)
+
+           crimeCamera.setOnClickListener {
+               photoName = "IMG_${Date()}.JPG"
+               val photoFile = File(
+                   requireContext().applicationContext.filesDir,
+                   photoName
+               )
+
+               val photoUri = FileProvider.getUriForFile(
+                   requireContext(),
+                   "com.example.criminalintent.fileprovider",
+                   photoFile
+               )
+
+               takePhoto.launch(photoUri)
+           }
+
+            val captureImageIntent = takePhoto.contract.createIntent(
+                requireContext(),
+                null
+            )
+            crimeCamera.isEnabled = canResolveIntent(captureImageIntent)
         }
 
         viewLifecycleOwner.lifecycleScope.launch {
@@ -133,11 +187,17 @@ class CrimeDetailFragment : Fragment() {
                     putExtra(Intent.EXTRA_TEXT, generateCrimeReport(crime))
                     putExtra(Intent.EXTRA_SUBJECT, getString(R.string.crime_report_subject))
                 }
-                startActivity(reportIntent)
+                val chooserIntent =
+                    Intent.createChooser(
+                        reportIntent, getString(R.string.send_report)
+                    )
+                startActivity(chooserIntent)
+            }
+            crimeSuspect.text = crime.suspect.ifEmpty {
+                getString(R.string.crime_suspect_text)
             }
         }
     }
-
     private fun generateCrimeReport(crime: Crime): String {
         val solvedString = if (crime.isSolved) {
             getString(R.string.crime_report_solved)
@@ -157,4 +217,29 @@ class CrimeDetailFragment : Fragment() {
             crime.title, dateString, solvedString, suspectText
         )
     }
+    private fun parseContactSelection(contactUri: Uri) {
+        val queryFields = arrayOf(ContactsContract.Contacts.DISPLAY_NAME)
+
+        val queryCursor =
+            requireActivity().contentResolver.query(contactUri, queryFields, null, null, null)
+
+        queryCursor?.use { cursor ->
+            if (cursor.moveToFirst()) {
+                val suspect = cursor.getString(0)
+                crimeDetailViewModel.updateCrime { oldCrime ->
+                    oldCrime.copy(suspect = suspect)
+                }
+            }
+        }
+    }
+    private fun canResolveIntent(intent: Intent): Boolean {
+        val packageManager: PackageManager = requireActivity().packageManager
+        val resolvedActivity: ResolveInfo? =
+            packageManager.resolveActivity(
+                intent,
+                PackageManager.MATCH_DEFAULT_ONLY
+            )
+        return resolvedActivity != null
+    }
 }
+
