@@ -120,7 +120,7 @@ class CrimeDetailFragment : Fragment(){
 
             val captureImageIntent = takePhoto.contract.createIntent(
                 requireContext(),
-                null
+                Uri.parse("")
             )
             crimeCamera.isEnabled = canResolveIntent(captureImageIntent)
         }
